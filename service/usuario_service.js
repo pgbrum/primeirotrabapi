@@ -14,17 +14,6 @@ function inserir(usuario) {
     }
 }
 
-// function inserir(usuario) {
-//     if(!usuario || !usuario.nome || !usuario.cpf 
-//         || !usuario.email) {
-//             return;
-//     }
-//     usuario.id = idGerador++;
-//     listaUsuarios.push(usuario);
-//     return usuario;
-// }
-
-
 function buscarPorId(id) {
     let usuario = usuarioRepository.buscarPorId(id);
     if(usuario) {
@@ -59,7 +48,6 @@ function deletar(id) {
         throw { id: 404, msg: "Usuário não encontrado!" }
     }
 }
-
 
 module.exports = {
     listar,

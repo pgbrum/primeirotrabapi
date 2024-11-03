@@ -3,7 +3,6 @@ const request = require('supertest');
 const app = require('../app.js');
 
 // Cenário de sucesso
-
 describe('Rota de produto', () => {
     
    test('Quando inserir o produto arroz, deve retornar e conter na lista o produto com id=1', async () => {
@@ -17,9 +16,8 @@ describe('Rota de produto', () => {
        const response = await request(app)
            .post('/produtos')
            .send(produtoInseridoEsperado)
-           .expect(201); // Verifica se o status code é 201 (Created)
+           .expect(201);
 
-       // Verificando se o produto foi inserido no repositório
        const produtos = await produtoRepository.listar();
        expect(produtos).toContainEqual(produtoInseridoEsperado);
    });
@@ -35,17 +33,18 @@ describe('Rota de produto', () => {
        const response = await request(app)
            .post('/produtos')
            .send(produtoInseridoErrado)
-           .expect(400); // Verifica se o status code é 400 (Bad Request)
+           .expect(400);
 
-       // Não deve inserir na lista o produto errado
        const produtos = await produtoRepository.listar();
        expect(produtos).not.toContainEqual(produtoInseridoErrado);
    });
 
-   test('Quando deletar um produto com id inexistente, deve retornar undefined', async () => {
-       const resultado = await produtoRepository.deletar(10);
-       expect(resultado).toBeUndefined();
-   });
+   test('Quando deletar um produto com id inexistente, deve retornar 404', async () => {
+    const produtoId = 10;
+    const response = await request(app)
+        .delete(`/produtos/${produtoId}`)
+        .expect(404);
+});
 
    test('Quando deletar um produto com id existente, deve retornar statuscode 200', async () => {
        await request(app)
@@ -87,9 +86,9 @@ describe('Rota de produto', () => {
        };
 
        const response = await request(app)
-           .put('/produtos/2') // Supondo que o id do produto a ser atualizado é 1
+           .put('/produtos/2')
            .send(produtoAtualizado)
-           .expect(200); // Verifica se o status code é 200 (OK)
+           .expect(200);
 
        // Verificando se o produto foi atualizado no repositório
        const produtoAtual = await produtoRepository.listar();
@@ -107,8 +106,8 @@ describe('Rota de produto', () => {
        };
 
        await request(app)
-           .put('/produtos/9999') // ID que não existe
+           .put('/produtos/9999')
            .send(produtoAtualizado)
-           .expect(404); // Verifica se o status code é 404 (Not Found)
+           .expect(404);
    });
 });

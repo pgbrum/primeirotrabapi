@@ -1,7 +1,6 @@
 const produtoService = require('../service/produto_service');
 
 // Funções do Controller
-
 const listar = (req, res) => {
   res.json(produtoService.listar());
 };
@@ -44,11 +43,8 @@ const deletar = (req, res) => {
   } catch (err) {
     res.status(err.id).json(err);
   }
-
-  
 };
 
-// Exporta as funções para uso em app.js
 module.exports = {
   listar,
   buscarPorId,

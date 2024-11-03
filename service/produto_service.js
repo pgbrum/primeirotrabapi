@@ -49,7 +49,6 @@ function deletar(id) {
     }
 }
 
-
 module.exports = {
     listar,
     inserir,

@@ -2,7 +2,6 @@ const pedidoRepository = require('../repository/pedido_repository')
 const usuarioRepository = require('../repository/usuario_repository')
 const produtoRepository = require('../repository/produto_repository')
 
-
 function obterDataAtual(){
     const hoje = new Date();
     const dia = String(hoje.getDate()).padStart(2, '0'); // Obtém o dia
@@ -47,21 +46,6 @@ function buscarPorId(id) {
     }
 }
 
-// function atualizar(id, pedido) {
-//     if(pedido && pedido.idUsuario && pedido.idProduto) {
-//         const pedidoAtualizado = pedidoRepository.atualizar(id, pedido);
-//         if(pedidoAtualizado) {
-//             return pedidoAtualizado;
-//         }
-//         else {
-//             throw {id:404, msg: "Pedido não encontrado"};
-//         }
-//     }
-//     else {
-//         throw {id:400, msg: "Pedido sem dados corretos"};
-//     }
-// }
-
 function atualizar(id, pedido) {
     // Verifica se os dados essenciais foram fornecidos
     if (!pedido || !pedido.idUsuario || !pedido.idProduto) {
@@ -84,12 +68,11 @@ function atualizar(id, pedido) {
 
     // Atualiza os dados do pedido
     const pedidoAtualizado = {
-        ...pedidoAtual, // Mantém os dados existentes
+        ...pedidoAtual,
         idUsuario: pedido.idUsuario,
         idProduto: pedido.idProduto,
         nomeUsuario: usuarioExiste.nome,
         nomeProduto: produtoExiste.nome,
-        // A data do pedido não é alterada, então não precisamos definir isso
     };
 
     // Atualiza o pedido no repositório
@@ -105,7 +88,6 @@ function deletar(id) {
         throw { id: 404, msg: "Pedido não encontrado!" }
     }
 }
-
 
 module.exports = {
     listar,

@@ -1,7 +1,6 @@
 const usuarioService = require('../service/usuario_service');
 
 // Funções do Controller
-
 const listar = (req, res) => {
   res.json(usuarioService.listar());
 };
@@ -45,7 +44,6 @@ const deletar = (req, res) => {
   }
 };
 
-// Exportando as funções para uso em `app.js`
 module.exports = {
   listar,
   buscarPorId,
