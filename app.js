@@ -40,3 +40,5 @@ app.delete('/pedidos/:id', pedidoController.deletar);
 app.listen(PORT, () => {
   console.log(`Servidor executando na porta ${PORT}`);
 });
+
+module.exports = app;

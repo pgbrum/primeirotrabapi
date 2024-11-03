@@ -1,81 +1,123 @@
-const usuario_repository = require("../../TrabUmAPIv3/repository/usuario_repository.js");
+const usuarioRepository = require("./usuario_repository.js");
+const request = require('supertest');
+const app = require('../app.js'); // Apenas o app
+// const server = require('../server'); // Importa o servidor
 
-//Cenário de sucesso
-test('Quando inserir o usuário, deve retornar e conter na lista o usuario com id=1'
-    , () => {
-        //usuario que se espera ser cadastrado (com id)
-        const usuarioInseridoEsperado = {
-            id: 1,
-            nome: "Pedro",
-            cpf: 111,
-            email: "PedroEdirlei@email.com"
-        };
-        //Inserindo o usuario no repositorio
-        const usuarioInserido = usuario_repository.inserir({
-            nome: "Pedro",
-            cpf: 111,
-            email: "PedroEdirlei@email.com"
-        });
-        //Verificando se o usuario inserido que retornou está correto
-        expect(usuarioInserido).toEqual(usuarioInseridoEsperado);
-        //Verificando se o usuario foi inserido no repositório
-        expect(usuario_repository.listar()).toContainEqual(usuarioInseridoEsperado);
-    })
-//Cenário de exceção
-test('Quando inserir o usuario sem cpf, não deve retornar e não insere na lista'
-    , () => {
-        //Criado o cenário (com id=2 porque conta o teste anterior) para o usuario inserido sem cpf
-        const usuarioInseridoErrado = {
-            id: 2,
-            nome: "Edirlei",
-            email: "PedroEdirlei@email.com"
-        };
-        //Inserindo o usuario sem cpf
-        const usuarioInserido = usuario_repository.inserir({
-            nome: "Edirlei",
-            email: "PedroEdirlei@email.com"
-        });
-        //O usuario não deve retornar
-        expect(usuarioInserido).toEqual(undefined);
-        //Não deve inserir na lista o usuario errado
-        expect(usuario_repository.listar()).not.toContainEqual(usuarioInseridoErrado);
-    })
-//Cenário de sucesso - buscarPorId()
-test('Quando buscar por um id existente, deve retornar o dado corretamente', () => {
-    //Vou inserir um segundo usuario para o teste (id=2)
-    const usuarioInserido = usuario_repository.inserir({
-        nome: "Kipper",
-        cpf: 222,
-        email: "bomdiakipper@email.com"
-    });
-    const resultado = usuario_repository.buscarPorId(usuarioInserido.id);
-    //Podemos fazer testes mais simples:
-    expect(resultado).toBeDefined();
-    expect(resultado.nome).toBe("Kipper")
-});
-//Cenário de exceção - buscarPorId()
-test('Quando buscar por id inexistente, deve retornar undefined', () => {
-    const resultado = usuario_repository.buscarPorId(10);
-    expect(resultado).toBeUndefined();
-});
+describe('Rotas de usuario', () => {
+    
+    // beforeAll(async () => {
+    //     // O servidor já está em execução
+    // });
 
-//Cenário de sucesso - deletar()
-test('Quando deletar um id existente, deve remover e retornar o dado', () => {
-    const usuarioDeletadoEsperado = {
-        nome: "Kipper",
-        cpf: 222,
-        email: "bomdiakipper@email.com",
-        id: 2
-    };
-    const quantidadeEsperada = 1;
-    resultado = usuario_repository.deletar(2);
-    expect(resultado).toEqual(usuarioDeletadoEsperado);
-    expect(usuario_repository.listar().length).toBe(quantidadeEsperada);
+    
+    
+    // afterAll(async () => {
+    //     await new Promise(resolve => server.close(resolve));
+    // });
 
-})
+   test('Quando inserir o usuario, deve retornar e conter na lista o usuario com id=1', async () => {
+       const usuarioInseridoEsperado = {
+           id: 1,
+           nome: "Alfi",
+           cpf: 123,
+           email: "tetas@email"
+       };
+       
+       const response = await request(app)
+           .post('/usuarios')
+           .send(usuarioInseridoEsperado)
+           .expect(201); // Verifica se o status code é 201 (Created)
 
-//Cenário de exceção - deletar()
-test('Quando deletar um usuario com id inexistente, deve retornar undefined', () => {
-    const resultado = usuario_repository.deletar(10);
-    expect(resultado).toBeUndefined();
+       // Verificando se o usuario foi inserido no repositório
+       const usuarios = await usuarioRepository.listar();
+       expect(usuarios).toContainEqual(usuarioInseridoEsperado);
+   });
+
+   // Cenário de exceção
+   test('Quando inserir o usuario sem email, não deve retornar e não insere na lista', async () => {
+       const usuarioInseridoErrado = {
+           id: 2,
+           nome: "jonas",
+           cpf: 456
+       };
+
+       const response = await request(app)
+           .post('/usuarios')
+           .send(usuarioInseridoErrado)
+           .expect(400); // Verifica se o status code é 400 (Bad Request)
+
+       // Não deve inserir na lista o usuario errado
+       const usuarios = await usuarioRepository.listar();
+       expect(usuarios).not.toContainEqual(usuarioInseridoErrado);
+   });
+
+   test('Quando deletar um usuario com id inexistente, deve retornar undefined', async () => {
+       const resultado = await usuarioRepository.deletar(10);
+       expect(resultado).toBeUndefined();
+   });
+
+   test('Quando deletar um usuario com id existente, deve retornar statuscode 200', async () => {
+       await request(app)
+           .post('/usuarios')
+           .send({
+               nome: "Lucas",
+               cpf: 789,
+               email: "pauduro@email",
+               id: 1
+           })
+           .expect(201);
+
+       const usuarioId = 1; // ID do usuario inserido
+
+       await request(app)
+           .delete(`/usuarios/${usuarioId}`)
+           .expect(200);
+   });
+
+   test('Quando buscar por id inexistente, deve retornar 404', async () => {
+       const usuarioId = 1000;
+       await request(app)
+           .get(`/usuarios/${usuarioId}`)
+           .expect(404);
+   });
+
+   test('Quando buscar por um id existente, deve retornar o dado corretamente', async () => {
+       const usuarioId = 2;
+       await request(app)
+           .get(`/usuarios/${usuarioId}`)
+           .expect(200);
+   });
+
+   test('Quando atualizar um usuario existente, deve retornar o usuario atualizado', async () => {
+       const usuarioAtualizado = {
+           nome: "Paulino",
+           cpf: 789,
+           email: "xotilda@email"
+       };
+
+       const response = await request(app)
+           .put('/usuarios/2') // Supondo que o id do usuario a ser atualizado é 1
+           .send(usuarioAtualizado)
+           .expect(200); // Verifica se o status code é 200 (OK)
+
+       // Verificando se o usuario foi atualizado no repositório
+       const usuarioAtual = await usuarioRepository.listar();
+       expect(usuarioAtual).toContainEqual({
+           id: 2,
+           ...usuarioAtualizado
+       });
+   });
+
+   test('Quando atualizar um usuario com id inexistente, deve retornar 404', async () => {
+       const usuarioAtualizado = {
+           nome: "Carlos",
+           cpf: 111,
+           email: "vou@gmail"
+       };
+
+       await request(app)
+           .put('/usuarios/9999') // ID que não existe
+           .send(usuarioAtualizado)
+           .expect(404); // Verifica se o status code é 404 (Not Found)
+   });
 });

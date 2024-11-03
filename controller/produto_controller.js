@@ -40,9 +40,12 @@ const deletar = (req, res) => {
   const id = +req.params.id;
   try {
     res.json(produtoService.deletar(id));
+    res.status(204);
   } catch (err) {
     res.status(err.id).json(err);
   }
+
+  
 };
 
 // Exporta as funções para uso em app.js

@@ -61,10 +61,37 @@ function deletar(id) {
 //     })
 // }
 
+const produtoRepository = {
+    produtos: [],
+    
+    deletarTodos: async function() {
+        this.produtos = [];
+    },
+
+    listar: async function() {
+        return this.produtos;
+    },
+
+    inserir: async function(produto) {
+        if (!produto.categoria) {
+            return undefined; // ou lançar um erro
+        }
+        produto.id = this.produtos.length + 1; // Atribuindo ID simples
+        this.produtos.push(produto);
+        return produto;
+    },
+
+    // Outros métodos, como atualizar e deletar...
+};
+
+module.exports = produtoRepository; // Exportar o repositório
+
+
 module.exports = {
     listar,
     inserir,
     buscarPorId,
     atualizar,
     deletar,
+    produtoRepository,
 }

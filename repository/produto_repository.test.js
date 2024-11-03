@@ -1,81 +1,114 @@
- const produtoRepository = require("./produto_repository.js");
+const produtoRepository = require("./produto_repository.js");
+const request = require('supertest');
+const app = require('../app.js');
 
-//Cenário de sucesso
-test('Quando inserir o produto arroz, deve retornar e conter na lista o produto com id=1'
-    , () => {
-        //produto que se espera ser cadastrado (com id)
-        const produtoInseridoEsperado = {
-            id: 1,
-            nome: "Arroz",
-            categoria: "alimento",
-            preco: 4.00
-        };
-        //Inserindo o produto no repositorio
-        const produtoInserido = produtoRepository.inserir({
-            nome: "Arroz",
-            categoria: "alimento",
-            preco: 4.00
-        });
-        //Verificando se o produto inserido que retornou está correto
-        expect(produtoInserido).toEqual(produtoInseridoEsperado);
-        //Verificando se o produto foi inserido no repositório
-        expect(produtoRepository.listar()).toContainEqual(produtoInseridoEsperado);
-    })
-//Cenário de exceção
-test('Quando inserir o produto sem categoria, não deve retornar e não insere na lista'
-    , () => {
-        //Criado o cenário (com id=2 porque conta o teste anterior) para o produto inserido sem categoria
-        const produtoInseridoErrado = {
-            id: 2,
-            nome: "Massa",
-            preco: 4.00
-        };
-        //Inserindo o produto sem categoria
-        const produtoInserido = produtoRepository.inserir({
-            nome: "Massa",
-            preco: 4.00
-        });
-        //O produto não deve retornar
-        expect(produtoInserido).toEqual(undefined);
-        //Não deve inserir na lista o produto errado
-        expect(produtoRepository.listar()).not.toContainEqual(produtoInseridoErrado);
-    })
-//Cenário de sucesso - buscarPorId()
-test('Quando buscar por um id existente, deve retornar o dado corretamente', () => {
-    //Vou inserir um segundo produto para o teste (id=2)
-    const produtoInserido = produtoRepository.inserir({
-        nome: "Feijao",
-        categoria: "alimento",
-        preco: 7.00
-    });
-    const resultado = produtoRepository.buscarPorId(produtoInserido.id);
-    //Podemos fazer testes mais simples:
-    expect(resultado).toBeDefined();
-    expect(resultado.nome).toBe("Feijao")
-});
-//Cenário de exceção - buscarPorId()
-test('Quando buscar por id inexistente, deve retornar undefined', () => {
-    const resultado = produtoRepository.buscarPorId(10);
-    expect(resultado).toBeUndefined();
-});
+// Cenário de sucesso
 
-//Cenário de sucesso - deletar()
-test('Quando deletar um id existente, deve remover e retornar o dado', () => {
-    const produtoDeletadoEsperado = {
-        nome: "Feijao",
-        categoria: "alimento",
-        preco: 7.00,
-        id: 2
-    };
-    const quantidadeEsperada = 1;
-    resultado = produtoRepository.deletar(2);
-    expect(resultado).toEqual(produtoDeletadoEsperado);
-    expect(produtoRepository.listar().length).toBe(quantidadeEsperada);
+describe('Rota de produto', () => {
+    
+   test('Quando inserir o produto arroz, deve retornar e conter na lista o produto com id=1', async () => {
+       const produtoInseridoEsperado = {
+           id: 1,
+           nome: "Arroz",
+           categoria: "alimento",
+           preco: 4.00
+       };
+       
+       const response = await request(app)
+           .post('/produtos')
+           .send(produtoInseridoEsperado)
+           .expect(201); // Verifica se o status code é 201 (Created)
 
-})
+       // Verificando se o produto foi inserido no repositório
+       const produtos = await produtoRepository.listar();
+       expect(produtos).toContainEqual(produtoInseridoEsperado);
+   });
 
-//Cenário de exceção - deletar()
-test('Quando deletar um produto com id inexistente, deve retornar undefined', () => {
-    const resultado = produtoRepository.deletar(10);
-    expect(resultado).toBeUndefined();
+   // Cenário de exceção
+   test('Quando inserir o produto sem categoria, não deve retornar e não insere na lista', async () => {
+       const produtoInseridoErrado = {
+           id: 2,
+           nome: "Massa",
+           preco: 4.00
+       };
+
+       const response = await request(app)
+           .post('/produtos')
+           .send(produtoInseridoErrado)
+           .expect(400); // Verifica se o status code é 400 (Bad Request)
+
+       // Não deve inserir na lista o produto errado
+       const produtos = await produtoRepository.listar();
+       expect(produtos).not.toContainEqual(produtoInseridoErrado);
+   });
+
+   test('Quando deletar um produto com id inexistente, deve retornar undefined', async () => {
+       const resultado = await produtoRepository.deletar(10);
+       expect(resultado).toBeUndefined();
+   });
+
+   test('Quando deletar um produto com id existente, deve retornar statuscode 200', async () => {
+       await request(app)
+           .post('/produtos')
+           .send({
+               nome: "Feijao",
+               categoria: "alimento",
+               preco: 7.00,
+               id: 1
+           })
+           .expect(201);
+
+       const produtoId = 1; // ID do produto inserido
+
+       await request(app)
+           .delete(`/produtos/${produtoId}`)
+           .expect(200);
+   });
+
+   test('Quando buscar por id inexistente, deve retornar 404', async () => {
+       const produtoId = 1000;
+       await request(app)
+           .get(`/produtos/${produtoId}`)
+           .expect(404);
+   });
+
+   test('Quando buscar por um id existente, deve retornar o dado corretamente', async () => {
+       const produtoId = 2;
+       await request(app)
+           .get(`/produtos/${produtoId}`)
+           .expect(200);
+   });
+
+   test('Quando atualizar um produto existente, deve retornar o produto atualizado', async () => {
+       const produtoAtualizado = {
+           nome: "Arroz Integral",
+           categoria: "alimento",
+           preco: 5.00
+       };
+
+       const response = await request(app)
+           .put('/produtos/2') // Supondo que o id do produto a ser atualizado é 1
+           .send(produtoAtualizado)
+           .expect(200); // Verifica se o status code é 200 (OK)
+
+       // Verificando se o produto foi atualizado no repositório
+       const produtoAtual = await produtoRepository.listar();
+       expect(produtoAtual).toContainEqual({
+           id: 2,
+           ...produtoAtualizado
+       });
+   });
+
+   test('Quando atualizar um produto com id inexistente, deve retornar 404', async () => {
+       const produtoAtualizado = {
+           nome: "Produto Inexistente",
+           categoria: "alimento",
+           preco: 10.00
+       };
+
+       await request(app)
+           .put('/produtos/9999') // ID que não existe
+           .send(produtoAtualizado)
+           .expect(404); // Verifica se o status code é 404 (Not Found)
+   });
 });
