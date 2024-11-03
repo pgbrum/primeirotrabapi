@@ -19,7 +19,7 @@ function inserir(produto) {
 function buscarPorId(id) {
     return (listaProdutos.find(
         function(produto) {
-            return (produto.id == id);        
+            return (produto.id == id);
         }
     ));
 }

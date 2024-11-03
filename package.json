@@ -1,6 +1,7 @@
 {
   "name": "app-hello",
   "version": "1.0.0",
+  "description": "",
   "main": "app.js",
   "scripts": {
     "start": "node --watch app.js"
@@ -10,7 +11,5 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.1"
-  },
-  "devDependencies": {},
-  "description": ""
+  }
 }

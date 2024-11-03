@@ -1,4 +1,4 @@
-const usuario_repository = require("./usuario_repository.js");
+const usuario_repository = require("../../TrabUmAPIv3/repository/usuario_repository.js");
 
 //Cenário de sucesso
 test('Quando inserir o usuário, deve retornar e conter na lista o usuario com id=1'

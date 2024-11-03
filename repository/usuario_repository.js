@@ -18,7 +18,7 @@ function inserir(usuario) {
 function buscarPorId(id) {
     return (listaUsuarios.find(
         function(usuario) {
-            return (usuario.id == id);        
+            return (usuario.id == id);
         }
     ));
 }
